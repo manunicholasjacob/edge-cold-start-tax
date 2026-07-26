@@ -1,0 +1,65 @@
+{
+  "squeezenet1.1": {
+    "file_mb": 4.956208,
+    "wake_sd_ms": 86.03154600001517,
+    "wake_tmpfs_ms": 25.223759999960293,
+    "storage_ms": 60.807786000054875,
+    "storage_frac": 0.7068080120290312
+  },
+  "shufflenet-v2": {
+    "file_mb": 9.218554,
+    "wake_sd_ms": 149.58247900000288,
+    "wake_tmpfs_ms": 46.14466300000686,
+    "storage_ms": 103.43781599999602,
+    "storage_frac": 0.6915102403136
+  },
+  "mobilenetv2": {
+    "file_mb": 13.964571,
+    "wake_sd_ms": 201.35908299999983,
+    "wake_tmpfs_ms": 48.01127299998598,
+    "storage_ms": 153.34781000001385,
+    "storage_frac": 0.7615639072016135
+  },
+  "resnet18": {
+    "file_mb": 46.820737,
+    "wake_sd_ms": 653.7676789999978,
+    "wake_tmpfs_ms": 163.2745069999828,
+    "storage_ms": 490.49317200001497,
+    "storage_frac": 0.7502560737635007
+  },
+  "googlenet": {
+    "file_mb": 28.021836,
+    "wake_sd_ms": 391.2217329999521,
+    "wake_tmpfs_ms": 92.7448429999913,
+    "storage_ms": 298.4768899999608,
+    "storage_frac": 0.7629353505266471
+  },
+  "densenet": {
+    "file_mb": 32.726877,
+    "wake_sd_ms": 638.3477550000407,
+    "wake_tmpfs_ms": 288.3304630000225,
+    "storage_ms": 350.0172920000182,
+    "storage_frac": 0.5483175733891252
+  },
+  "efficientnet-lite4": {
+    "file_mb": 51.946641,
+    "wake_sd_ms": 682.9625990000068,
+    "wake_tmpfs_ms": 131.57564400000865,
+    "storage_ms": 551.3869549999981,
+    "storage_frac": 0.807345754814888
+  },
+  "resnet50": {
+    "file_mb": 102.58334,
+    "wake_sd_ms": 1388.2259159999535,
+    "wake_tmpfs_ms": 333.6407980000331,
+    "storage_ms": 1054.5851179999204,
+    "storage_frac": 0.7596639032922043
+  },
+  "resnet50-int8": {
+    "file_mb": 25.746751,
+    "wake_sd_ms": 437.4501170000258,
+    "wake_tmpfs_ms": 160.90257999996993,
+    "storage_ms": 276.54753700005585,
+    "storage_frac": 0.6321807361638894
+  }
+}

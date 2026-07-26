@@ -1,0 +1,296 @@
+\section{The Cold-Start Tax and Its Decomposition}\label{sec:decomp}
+Table~\ref{tab:main} reports, for every model, the steady-state latency, the cold-wake latency
+(session creation from a flushed cache plus the first inference), and their ratio---the
+cold-start tax. The tax ranges from \textbf{4.8$\times$} (SqueezeNet-INT8) to
+\textbf{22.5$\times$} (ShuffleNet-V2), i.e., the very first result after a wake takes 5--23 times
+as long as a steady-state inference. Absolute cold-wake latency spans \SI{59}{ms}
+(SqueezeNet-INT8) to \SI{1.41}{s} (ResNet-50). For a device that wakes, classifies one frame,
+and sleeps, this transient---not the steady state---is the entire user-visible latency.
+
+Figure~\ref{fig:decomp} decomposes the cold wake into four components isolated as described in
+\S\ref{sec:setup}: loading weights from flash, graph build and arena allocation, graph
+optimization, and cold compute (the first inference above steady state). The decomposition yields
+the paper's central mechanical finding: \emph{the cold-start tax is overwhelmingly a
+weight-loading cost}. Flash read accounts for \SIrange{55}{81}{\percent} of the cold wake for the
+FP32 CNNs (and 48--81\% across all models); the effective sequential read bandwidth from the
+microSD card is only ${\sim}\SI{94}{MB/s}$ (ResNet-50: \SI{102.6}{MB} in \SI{1.09}{s}), so larger
+models pay proportionally. Graph optimization is a secondary but non-trivial cost for the deeper
+graphs (e.g., \SI{110}{ms} for ResNet-50, \SI{83}{ms} for ResNet-50-INT8, whose quantize/
+dequantize nodes are numerous).
+
+\begin{table*}[t]
+\centering
+\caption{Cold-start characterization on Raspberry~Pi~5 (Cortex-A76, 2.4\,GHz pinned).
+Latencies are medians of 5--7 cold trials. ``Disk\%'' is the weight-loading fraction of the
+cold wake. Energy from on-board PMIC; ``$=$ inf.'' is the cold-wake energy expressed in
+steady-state inferences.}
+\label{tab:main}
+\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+Model & File (MB) & Steady (ms) & Cold wake (ms) & Tax ($\times$) & Disk\% & $E_{\text{cold}}$ (J) & $=$ inf. \\
+\midrule
+SqueezeNet-1.1        &   4.96 &  12.9 &   83.7 &  6.5 & 73 & \CEsq  & \CIsq  \\
+ShuffleNet-V2         &   9.22 &   6.7 &  150.2 & 22.5 & 72 & \CEsh  & \CIsh  \\
+MobileNetV2           &  13.96 &  16.7 &  203.6 & 12.2 & 77 & \CEmb  & \CImb  \\
+GoogLeNet             &  28.02 &  51.6 &  397.5 &  7.7 & 77 & \CEgo  & \CIgo  \\
+DenseNet-121          &  32.73 & 123.8 &  635.2 &  5.1 & 55 & \CEde  & \CIde  \\
+ResNet-18             &  46.82 &  46.9 &  661.7 & 14.1 & 75 & \CErEighteen & \CIrEighteen \\
+EfficientNet-Lite4    &  51.95 &  60.0 &  687.9 & 11.5 & 81 & \CEef  & \CIef  \\
+ResNet-50             & 102.58 & 106.6 & 1410.8 & 13.2 & 77 & \CErFifty & \CIrFifty \\
+ViT-Base/16           & 346.53 & \VITS & \VITW  & \VITT & \VITD& \CEvit & \CIvit \\
+\midrule
+SqueezeNet-1.1-INT8   &   1.30 &  12.3 &   59.1 &  4.8 & 48 & \CEsqi & \CIsqi \\
+MobileNetV2-INT8      &   3.60 &   7.3 &   96.7 & 13.2 & 55 & \CEmbi & \CImbi \\
+ResNet-50-INT8        &  25.75 &  32.7 &  432.8 & 13.2 & 63 & \CErFiftyi& \CIrFiftyi\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig1_tax.png}
+\caption{The cold-start tax: first-wake latency is 5--23$\times$ the steady-state latency that
+benchmarks report. INT8 quantization lowers absolute latency but not the tax ratio.}
+\label{fig:tax}
+\end{figure}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig2_decomp.png}
+\caption{Decomposition of the cold wake. Loading weights from flash dominates
+(55--81\% for the FP32 CNNs); cold compute is negligible.}
+\label{fig:decomp}
+\end{figure}
+
+\subsection{There Is No Compute Warm-Up}\label{sec:warmup}
+A widespread practice is to run a ``warm-up loop'' of several inferences before measuring, on the
+assumption that the first inferences are slow until caches, branch predictors, and lazily
+allocated buffers settle. Figure~\ref{fig:warmup} shows this assumption does not hold on this
+platform: once the session exists, the first inference already runs at steady-state speed. Across
+all models the first-inference latency is within \SIrange{0}{11}{\percent} of steady state
+(median \SI{1.00}{$\times$}), and the number of inferences needed to reach the $\pm5\%$
+steady-state band is 0--1. The cold-start tax therefore lives \emph{entirely} in session
+construction (loading and preparing the model), not in the execution of the model. Warm-up loops
+amortize a cost that, on this hardware, does not exist; what must be amortized is the one-time
+session build.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.92\columnwidth]{figs/fig3_warmup.png}
+\caption{No compute warm-up: normalized latency is at steady state by the first inference. The
+transient benchmarks guard against with warm-up loops is absent; the real cost is the one-time
+session build (Fig.~\ref{fig:decomp}).}
+\label{fig:warmup}
+\end{figure}
+
+\subsection{Quantization Shrinks the Tax but Not Its Ratio}
+Static INT8 quantization is usually adopted for its steady-state speedup. On the cold wake its
+effect is two-sided. Because an INT8 file is smaller, its absolute cold wake falls sharply
+(ResNet-50: \SI{1.41}{s}$\rightarrow$\SI{0.43}{s} for ResNet-50-INT8; MobileNetV2:
+\SI{204}{ms}$\rightarrow$\SI{97}{ms}). But because steady-state latency falls in step, the tax
+\emph{ratio} is essentially unchanged (ResNet-50: 13.2$\times$ in both precisions; MobileNetV2:
+12.2$\times\rightarrow$13.2$\times$). Quantization buys a cheaper wake in absolute terms without
+making the device any less dominated by its cold start.
+
+\subsection{Storage Is the Cause, Not Model Size}\label{sec:storage}
+Cold-wake latency correlates with model size, but size is a proxy: the mechanism is bytes moved
+from flash. To establish causality we load each model from RAM-backed tmpfs (\texttt{/dev/shm},
+effectively unbounded storage bandwidth) and compare against the microSD card
+(Fig.~\ref{fig:storage}). The tmpfs wake removes the storage term, leaving only graph build,
+optimization, and first compute; the microSD-minus-tmpfs gap is the storage contribution and
+accounts for \STORAGEFRAC\ of the cold wake for the larger models. This confirms the tax is a
+storage-bandwidth cost and predicts that a faster medium (eMMC, NVMe) would shrink it toward the
+build/optimize floor rather than eliminate it.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig7b_storage.png}
+\caption{Storage sensitivity. Loading from RAM-backed tmpfs versus microSD isolates the
+weight-loading term; the gap (storage) dominates the cold wake for larger models, confirming the
+tax is flash-bandwidth bound.}
+\label{fig:storage}
+\end{figure}
+
+\subsection{A Size-Only Predictor of the Tax}\label{sec:predict}
+Because loading dominates and is bandwidth-bound, the cold wake is predictable from a single
+deploy-time quantity: the model's file size. Fitting the weight-load time against file size gives
+a near-perfect straight line---an effective microSD read bandwidth of \BWFLASH\
+($R^2=\WAKERSQDISK$)---and a size-only model of the whole cold wake,
+$\hat{t}_{\text{cold}} = \WAKESLOPE\cdot\text{file}_{\text{MB}} + \WAKEINT$, predicts measured
+cold-wake latency across all twelve models with $R^2=\WAKERSQ$ and a mean absolute percentage
+error of \WAKEMAPE\ (Fig.~\ref{fig:predict}). A deployer can therefore estimate the wake penalty
+of a candidate model, on this class of hardware, from its file size alone---no profiling run
+required.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig8_predict.png}
+\caption{(a) Weight-load time is linear in file size (microSD $\approx$\,\BWFLASH). (b) A
+size-only predictor estimates the cold wake to within \WAKEMAPE\ MAPE.}
+\label{fig:predict}
+\end{figure}
+
+\section{The Eviction Cliff}\label{sec:cliff}
+The tax in Table~\ref{tab:main} is paid on a fully cold cache. Whether a duty-cycled device
+actually pays it on each wake depends on whether the model's pages survive the idle interval in
+the page cache. We find the answer is governed by \emph{what kind} of memory pressure the idle
+interval brings.
+
+\textbf{Use-once file I/O does not evict a recently-used model.} When we stream up to \SI{2}{GB}
+of unrelated file reads through the page cache after using a model, the model's next wake stays
+warm: session-create latency remains at its warm value for every model tested, across the whole
+sweep (e.g., ResNet-50 session-create stays ${\sim}\SI{215}{ms}$, far below its \SI{1.09}{s} cold
+value; ResNet-18 stays ${\sim}\SI{110}{ms}$). This is Linux's active/inactive-list scan
+resistance: pages touched just before the idle interval sit on the active list and are protected
+against a use-once streaming scan. For duty cycles whose idle work is I/O-bound (logging,
+buffering), the model is largely safe.
+
+\textbf{A co-tenant's working set does evict it---sharply.} Anonymous memory demand is different:
+to satisfy it the kernel must reclaim file-backed pages, including the model's. Figure~\ref{fig:cliff}
+sweeps a co-tenant's anonymous footprint on the 2\,GB device and exposes a sharp
+\emph{eviction cliff}: below the cliff the wake is warm, and once the footprint pushes available
+memory below the model's resident size the next wake jumps to its full cold value---the tax of
+Table~\ref{tab:main} is re-paid in full. The cliff location \CLIFFDESC. On a memory-constrained
+multi-tenant edge device, then, the cold-start tax is not a one-time startup cost but a recurring
+one, paid whenever a co-resident workload grows---which directly motivates the residency policy
+of \S\ref{sec:policy}.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.95\columnwidth]{figs/fig4_cliff.png}
+\caption{The eviction cliff. Anonymous co-tenant memory pressure during the idle interval evicts
+the model's pages once free memory drops below its footprint, re-triggering the full cold-start
+tax on the next wake. (Use-once streaming pressure, by contrast, leaves the model warm.)}
+\label{fig:cliff}
+\end{figure}
+
+\section{The Energy of a Wake}\label{sec:energy}
+Latency is only half the cost; for battery- and harvesting-powered devices the energy of a wake
+sets the duty-cycle budget. Using the Pi~5's PMIC telemetry we measure the energy of a cold wake,
+a warm wake, and a steady-state inference (Fig.~\ref{fig:energy}, Table~\ref{tab:main}). A single
+cold wake costs the energy of \CINFRANGE\ steady-state inferences. \ENERGYPARA
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig5_energy.png}
+\caption{(a) Cold vs.\ warm wake energy per model. (b) A cold wake costs the energy of 4--19
+steady-state inferences, scaling with model size.}
+\label{fig:energy}
+\end{figure}
+
+\subsection{The DVFS Ramp Adds Little}\label{sec:dvfs}
+Because the cold wake is dominated by flash I/O rather than computation, one might expect the
+CPU clock to matter little during a wake. Figure~\ref{fig:dvfs} confirms it. Comparing the
+default on-demand governor (\texttt{schedutil}), which starts near the minimum clock and ramps up
+during the wake, against a pinned \SI{2.4}{GHz}, the governor's ramp adds only
+\SIrange{0}{4}{\percent} to cold-wake latency (mean ${\sim}\RAMPMEAN\%$). The wake is I/O-bound,
+so paying maximum-clock energy through it is largely wasted---a useful corollary given that
+max-clock operation is already energetically wasteful for steady-state
+inference~\cite{jacob2026energy}.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.95\columnwidth]{figs/fig6_dvfs.png}
+\caption{DVFS ramp tax. Because the wake is I/O-bound, the on-demand governor's clock ramp adds
+only a few percent to cold-wake latency over a pinned maximum clock.}
+\label{fig:dvfs}
+\end{figure}
+
+\section{How Many Inferences Justify a Wake?}\label{sec:amortize}
+The cold-start tax is a fixed cost per wake, amortized over the $B$ inferences the device runs
+before sleeping again. Figure~\ref{fig:amortize} plots the cold-start overhead---in both time and
+energy---as a fraction of the total wake, against $B$. For a device that wakes to run a single
+inference ($B=1$), the overhead is essentially the entire tax: \OVERHEADBONE\ of the wake's time
+and \OVERHEADBONEE\ of its energy is cold start rather than useful work. Overhead falls below
+10\% only at $B=\BTENLO$--\BTENHI\ inferences per wake, depending on the model. This quantifies
+the duty-cycle regime in which cold start matters: a doorbell camera classifying one frame per
+event lives entirely in the tax; a device batching hundreds of inferences per wake escapes it.
+The practical consequence is that \emph{the duty-cycle ratio, not the steady-state throughput,
+determines whether cold start must be engineered around}.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig9_amortize.png}
+\caption{Amortizing the tax. Cold-start overhead as a fraction of (a) wake time and (b) wake
+energy versus inferences per wake $B$. Below $B\approx\BTENLO$--$\BTENHI$ the tax dominates.}
+\label{fig:amortize}
+\end{figure}
+
+\subsection{Disable Graph Optimization for Short Wakes}\label{sec:optpolicy}
+ONNX Runtime's default is to apply all graph optimizations, which speeds steady-state inference
+but lengthens session creation---part of the tax. For a duty-cycled device this default can be
+counter-productive. Comparing optimization levels, disabling optimization reduces cold-wake
+latency (a smaller build) at the cost of slower steady inference, so there is a crossover $B^{*}$:
+below $B^{*}$ inferences per wake, \emph{disabling} optimization minimizes total wake-plus-work
+time. \OPTPARA\ This is a zero-cost configuration change---one enum---that directly reduces the
+tax for low-duty-cycle deployments, and it composes with the residency policy below.
+
+\section{\texorpdfstring{\gdtax}{GD-Tax}: A Tax-Aware Residency Policy}\label{sec:policy}
+The measurements above imply an operating principle for multi-model edge devices: because a cold
+wake costs the energy of many inferences and re-triggers whenever memory is pressured, the device
+should keep \emph{warm} the sessions whose eviction would be most expensive---not simply the most
+recently or most frequently used. We formalize this as cost-aware caching and evaluate it on the
+measured constants.
+
+\textbf{Problem.} A device serves a stream of requests to $K$ models but has a RAM budget $B$ too
+small to hold every session warm. On a request to a resident (warm) model it pays the steady cost
+$(L_s^i, E_s^i)$; on a request to an evicted model it pays the cold wake $(L_c^i, E_c^i)$ and the
+model becomes resident, evicting others to fit $B$. Each resident model occupies $m_i$ MB
+(measured resident footprint, 9--265\,MB). The goal is to minimize energy per request (and tail
+latency) over the trace.
+
+\textbf{Policy.} \gdtax{} is a Greedy-Dual policy~\cite{cao1997greedydual} whose retention
+priority is keyed on each model's \emph{measured cold-wake energy penalty}
+$\Delta E_i = E_c^i - E_s^i$: on access, model $i$'s priority is set to $H\!\leftarrow\! H_{\min}
++ \Delta E_i$, and the resident model with the smallest priority is evicted, with the classical
+aging that raises $H_{\min}$ to the evicted priority. High-tax models are thus retained
+preferentially, exactly in proportion to what their eviction would cost. Unlike FaasCache's
+server keep-alive~\cite{fuerst2021faascache}, the cost is a measured on-device energy penalty and
+the constraint is physical RAM.
+
+\begin{algorithm}[t]
+\caption{\gdtax{} residency on a request to model $i$}
+\label{alg:gdtax}
+\begin{algorithmic}[1]
+\State \textbf{state:} resident set $R$, priorities $H$, budget $B$, aging base $L$
+\If{$i \in R$} \Comment{warm hit}
+  \State $H_i \gets L + \Delta E_i$ \Comment{$\Delta E_i = E_c^i - E_s^i$, measured}
+  \State pay $(L_s^i, E_s^i)$
+\Else \Comment{cold miss}
+  \State pay $(L_c^i, E_c^i)$
+  \While{$\sum_{j\in R} m_j + m_i > B$}
+    \State $v \gets \arg\min_{j\in R} H_j$; \; $L \gets \max(L, H_v)$; \; $R \gets R\setminus\{v\}$
+  \EndWhile
+  \State $R \gets R\cup\{i\}$; \; $H_i \gets L + \Delta E_i$
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Evaluation.} We simulate \gdtax{} against always-reload (no cache), LRU, LFU, and a
+cost-aware Belady oracle~\cite{belady1966study} on the measured constants, over a Zipf popularity
+workload and a detect$\rightarrow$classify pipeline workload, sweeping $B$ from 15\% to 100\% of
+the all-resident footprint (Fig.~\ref{fig:policy}). \POLICYPARA
+
+\section{Discussion and Limitations}\label{sec:discussion}
+\textbf{Implications for practice.} The results argue for three changes in how edge inference is
+reported and engineered. (i) \emph{Report the cold wake.} A steady-state latency/energy pair is
+insufficient for a duty-cycled deployment; a cold-wake latency and energy should accompany it,
+and the duty-cycle period and memory budget should be evaluation axes. (ii) \emph{Optimize
+loading, not warm-up.} Because there is no compute warm-up but weight loading dominates,
+effort is best spent on faster or avoided loading---keeping sessions resident, memory-mapping
+weights, faster storage, or smaller files---rather than on warm-up loops. (iii) \emph{Budget for
+re-warm.} On a memory-constrained device the tax recurs whenever a co-tenant's working set grows;
+residency must be managed, which \gdtax{} does using the measured energy penalty as its currency.
+
+\textbf{Generality and threats to validity.} Our measurements are ARM Cortex-A76 / ONNX Runtime /
+microSD specific. The \emph{ratios} we report (tax multiple, disk-dominated decomposition, absent
+compute warm-up, I/O-bound wake) should transfer to other CPU edge runtimes, but absolute values
+depend on storage bandwidth (a faster NVMe or eMMC would shrink the disk term and thus the tax)
+and on the runtime's graph-optimization cost. The PMIC telemetry samples at ${\sim}\SI{10}{Hz}$,
+so per-wake energy for the shortest wakes is estimated from pooled power over many repetitions
+rather than a single window; we report medians and anchor quantitative claims on the
+well-sampled larger models. The residency policy is evaluated in simulation on measured
+per-model constants and synthetic-but-realistic traces; an on-device implementation and a
+field-trace evaluation are natural next steps. Finally, an accelerator (GPU/NPU) execution
+provider would change the compute term but would, if anything, \emph{increase} the relative
+weight of loading, strengthening the paper's thesis.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig7_policy.png}
+\caption{\gdtax{} vs.\ baselines on measured constants (Zipf workload). By retaining the
+highest-energy-penalty models, \gdtax{} cuts energy per request and tail latency at tight RAM
+budgets, approaching the Belady oracle and far below LRU/LFU and always-reload.}
+\label{fig:policy}
+\end{figure}

@@ -1,0 +1,54 @@
+% defs.tex — data-driven macros, filled from final measurements (results/*.json).
+% --- Table I: cold-wake energy (J) and cold-wake-in-inferences per model ---
+\newcommand{\CEsq}{0.34}\newcommand{\CIsq}{4}
+\newcommand{\CEsh}{0.85}\newcommand{\CIsh}{19}
+\newcommand{\CEmb}{1.21}\newcommand{\CImb}{11}
+\newcommand{\CEgo}{2.39}\newcommand{\CIgo}{7}
+\newcommand{\CEde}{3.82}\newcommand{\CIde}{5}
+\newcommand{\CErEighteen}{4.01}\newcommand{\CIrEighteen}{12}
+\newcommand{\CEef}{3.95}\newcommand{\CIef}{10}
+\newcommand{\CErFifty}{8.80}\newcommand{\CIrFifty}{12}
+\newcommand{\CEvit}{35.2}\newcommand{\CIvit}{12}
+\newcommand{\CEsqi}{0.31}\newcommand{\CIsqi}{4}
+\newcommand{\CEmbi}{0.47}\newcommand{\CImbi}{11}
+\newcommand{\CErFiftyi}{2.98}\newcommand{\CIrFiftyi}{13}
+% --- ViT-Base row (E1) ---
+\newcommand{\VITS}{377}\newcommand{\VITW}{4620}\newcommand{\VITT}{12.3}\newcommand{\VITD}{78}
+% --- predictive model ---
+\newcommand{\BWFLASH}{\SI{96}{MB/s}}
+\newcommand{\WAKERSQDISK}{1.00}
+\newcommand{\WAKESLOPE}{\SI{13.2}{ms/MB}}
+\newcommand{\WAKEINT}{\SI{53}{ms}}
+\newcommand{\WAKERSQ}{0.998}
+\newcommand{\WAKEMAPE}{12\%}
+% --- amortization ---
+\newcommand{\BTENLO}{38}
+\newcommand{\BTENHI}{119}
+\newcommand{\OVERHEADBONE}{80--96\%}
+\newcommand{\OVERHEADBONEE}{73--95\%}
+\newcommand{\CINFRANGE}{4--19}
+% --- storage / dvfs ---
+\newcommand{\STORAGEFRAC}{55--81\%}
+\newcommand{\RAMPMEAN}{2.5}
+% --- policy (abstract) ---
+\newcommand{\ABSPOLICYSAVE}{15\%}
+% --- prose fragments ---
+\newcommand{\CLIFFDESC}{sits where a co-tenant drives free memory below the model's working set:
+ResNet-50 stays warm (${\sim}\SI{344}{ms}$) until the co-tenant reaches ${\sim}\SI{1.4}{GB}$
+(leaving ${<}\SI{350}{MB}$ free), beyond which session creation thrashes swap and the wake
+explodes to over \SI{30}{s}---a ${>}80\times$ jump. Every model tested shows the same cliff}
+\newcommand{\ENERGYPARA}{In absolute terms a cold wake costs from \SI{0.3}{J} (SqueezeNet-INT8) to
+\SI{8.8}{J} (ResNet-50), and \SI{35}{J} for ViT-Base, scaling with model size; idle draw is
+\SI{2.1}{W}. Because loading is I/O-bound the wake draws less instantaneous power than sustained
+compute, but its duration makes it costly: for a device that wakes to run a single inference,
+\OVERHEADBONEE\ of the energy spent is cold-start overhead rather than useful work.}
+\newcommand{\POLICYPARA}{Across both workloads and all budgets, \gdtax{} never underperforms LRU
+or LFU, and it reduces energy per request by up to \SI{15}{\percent} (Zipf) and
+\SI{11}{\percent} (surveillance) at tight budgets, tracking---and at low-to-mid budgets matching
+or beating---an offline Belady hit-rate reference. The gain is largest where cost and popularity
+are misaligned (an infrequent but expensive-to-reload detector), exactly the case LRU and LFU
+mishandle by evicting the costly model between its accesses.}
+\newcommand{\OPTPARA}{The crossover is model-dependent: for most models optimization pays for
+itself after only a few inferences ($B^{*}<5$), but for graphs whose optimization is expensive it
+is substantial---$B^{*}\approx18$ for ResNet-18---so a doorbell-style deployment that runs a
+handful of inferences per wake should disable it.}

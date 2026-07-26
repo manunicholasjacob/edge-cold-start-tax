@@ -1,0 +1,19 @@
+{
+  "predictive": {
+    "BW_MBps": 96.272183046666,
+    "r2_disk": 0.9997657631543396,
+    "wake_slope_ms_per_mb": 13.196127504829857,
+    "wake_intercept_ms": 52.69442809729794,
+    "r2_wake": 0.9982663133024935,
+    "mape": 11.974200293328641
+  },
+  "amortize": {
+    "b10": {
+      "squeezenet1.1": 50,
+      "mobilenetv2": 101,
+      "resnet18": 119,
+      "resnet50": 111,
+      "densenet": 38
+    }
+  }
+}

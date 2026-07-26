@@ -1,0 +1,3 @@
+[predict] flash read BW = 96 MB/s (R^2 disk=1.000)
+[predict] wake = 13.20 ms/MB * file_MB + 53 ms ; R^2=0.998 MAPE=12.0%
+[amortize] B to reach <10% time overhead: SqueezeNet=50, MobileNetV2=101, ResNet-18=119, ResNet-50=111, DenseNet=38

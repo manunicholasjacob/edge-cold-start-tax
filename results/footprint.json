@@ -1,0 +1,207 @@
+{
+  "squeezenet1.1": {
+    "file_mb": 4.956208,
+    "resident_mb": 37.6,
+    "inputs": [
+      {
+        "name": "data",
+        "shape": [
+          "1",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "shufflenet-v2": {
+    "file_mb": 9.218554,
+    "resident_mb": 19.1,
+    "inputs": [
+      {
+        "name": "input",
+        "shape": [
+          "1",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "mobilenetv2": {
+    "file_mb": 13.964571,
+    "resident_mb": 13.3,
+    "inputs": [
+      {
+        "name": "input",
+        "shape": [
+          "batch_size",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "resnet18": {
+    "file_mb": 46.820737,
+    "resident_mb": 115.0,
+    "inputs": [
+      {
+        "name": "data",
+        "shape": [
+          "N",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "googlenet": {
+    "file_mb": 28.021836,
+    "resident_mb": 21.6,
+    "inputs": [
+      {
+        "name": "data_0",
+        "shape": [
+          "1",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "densenet": {
+    "file_mb": 32.726877,
+    "resident_mb": 35.9,
+    "inputs": [
+      {
+        "name": "data_0",
+        "shape": [
+          "1",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "efficientnet-lite4": {
+    "file_mb": 51.946641,
+    "resident_mb": 0.2,
+    "inputs": [
+      {
+        "name": "images:0",
+        "shape": [
+          "1",
+          "224",
+          "224",
+          "3"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "resnet50": {
+    "file_mb": 102.58334,
+    "resident_mb": 195.8,
+    "inputs": [
+      {
+        "name": "data",
+        "shape": [
+          "N",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "vit-base": {
+    "file_mb": 346.533752,
+    "resident_mb": 264.8,
+    "inputs": [
+      {
+        "name": "pixel_values",
+        "shape": [
+          "batch_size",
+          "num_channels",
+          "height",
+          "width"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": false,
+    "run_error": "[ONNXRuntimeError] : 2 : INVALID_ARGUMENT : Non-zero status code returned while running Conv node. Name:'/vit/embeddings"
+  },
+  "squeezenet1.1-int8": {
+    "file_mb": 1.299267,
+    "resident_mb": 0.3,
+    "inputs": [
+      {
+        "name": "data",
+        "shape": [
+          "1",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "mobilenetv2-int8": {
+    "file_mb": 3.597507,
+    "resident_mb": 9.4,
+    "inputs": [
+      {
+        "name": "input",
+        "shape": [
+          "batch_size",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  },
+  "resnet50-int8": {
+    "file_mb": 25.746751,
+    "resident_mb": 40.2,
+    "inputs": [
+      {
+        "name": "data",
+        "shape": [
+          "N",
+          "3",
+          "224",
+          "224"
+        ],
+        "type": "tensor(float)"
+      }
+    ],
+    "ran": true
+  }
+}

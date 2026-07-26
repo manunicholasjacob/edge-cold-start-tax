@@ -1,0 +1,196 @@
+\documentclass[journal]{IEEEtran}
+% ============ The Cold-Start Tax — IEEE Internet of Things Journal ============
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{siunitx}
+\sisetup{detect-all, per-mode=symbol}
+
+\newcommand{\tax}{\textsc{Tax}}
+\newcommand{\gdtax}{\textsc{GD-Tax}}
+\input{defs}   % data-driven macros (energy numbers, cliff/policy prose), filled from results
+
+\begin{document}
+\title{The Cold-Start Tax: Warm-Up, Re-Warm, and\\ Residency Policy for Duty-Cycled Edge DNN Inference}
+
+\author{Manu~Nicholas~Jacob%
+\thanks{M. N. Jacob is with the Department of Electrical and Computer Engineering.
+E-mail: manunicholasjacob@gmail.com.}%
+\thanks{Artifact (code, raw measurements, and figures) available at the project repository.}}
+
+\markboth{IEEE Internet of Things Journal (Submitted)}%
+{Jacob: The Cold-Start Tax for Duty-Cycled Edge DNN Inference}
+
+\maketitle
+
+\begin{abstract}
+Edge inference benchmarks, and the deployment guidance drawn from them, almost universally
+report \emph{steady-state} latency and energy: the numbers a model reaches after it is loaded
+and warmed. Yet a large class of Internet-of-Things devices does not run inference in a hot
+loop. They \emph{duty-cycle}---wake on an event or a timer, run a handful of inferences, and
+return to a low-power state---so that the transient at every wake, not the steady state,
+dominates their user-visible latency and their energy budget. We call this transient the
+\emph{cold-start tax} and present the first systematic characterization of it on a
+representative edge platform, the Raspberry~Pi~5 (ARM Cortex-A76), across twelve models
+spanning compact CNNs, dense CNNs, statically-quantized INT8 CNNs, and a vision transformer.
+We measure a cold-start tax of \textbf{5--23$\times$} the steady-state latency and decompose it
+into disk (flash) weight loading, graph construction and optimization, arena allocation, and
+first-inference compute. The tax is overwhelmingly a \emph{weight-loading} cost
+(\num{55}--\SI{81}{\percent} of the wake); the first inference itself runs at steady-state
+speed, so there is essentially no compute warm-up to amortize. Using the Pi~5's on-board PMIC
+telemetry we show a single cold wake costs the energy of 4--19 steady-state inferences (up to
+\SI{35}{J} for a vision transformer), and that on a memory-constrained (2\,GB) device the tax
+\emph{re-triggers} whenever
+idle-interval memory pressure evicts the model's pages---an \emph{eviction cliff} we map
+directly. Because the wake is I/O-bound, the on-demand DVFS governor's clock ramp adds only a
+small tax, and static INT8 shrinks the absolute tax but not its ratio. We turn these
+measurements into a method: \gdtax{}, a tax-aware model-residency cache for multi-model edge
+deployments that keeps warm the sessions whose eviction would cost the most energy. Evaluated on
+measured constants over realistic request traces, \gdtax{} never underperforms LRU or LFU and
+cuts energy per request by up to \ABSPOLICYSAVE{} at a tight RAM budget, matching an offline
+Belady reference. We argue that duty-cycled edge inference should be reported and optimized in
+terms of the cold wake, not the steady state.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Edge AI, deep neural network inference, cold start, duty cycling, page cache, energy efficiency,
+model serving, Internet of Things, ARM Cortex-A76, Raspberry Pi.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{T}{he} dominant way to report the cost of running a deep neural network (DNN) on an
+edge device is to load the model once, run a warm-up loop, and then report the median or tail of
+a long run of inferences. This \emph{steady-state} convention underlies public leaderboards,
+vendor datasheets, and most research characterizations~\cite{reddi2020mlperf,bianco2018benchmark}.
+It is the right convention for a server that keeps a model resident and serves a continuous
+stream of requests. It is the wrong convention for the way an enormous fraction of IoT endpoints
+actually operate.
+
+A battery- or energy-harvesting-powered sensor, a wildlife camera, a wearable, or an
+intermittently-connected industrial monitor does not hold a model hot. To conserve energy it
+\emph{duty-cycles}: it sleeps, wakes on a passive-infrared trigger or a timer, classifies a few
+frames, and sleeps again. For such a device the relevant question is not ``how fast is the
+hundredth inference?'' but ``how long, and how much energy, from wake to first result?'' That
+first-result cost includes work the steady-state number hides entirely: the model's weights must
+be brought from flash into memory, the inference runtime must parse the graph, apply its
+optimizing rewrites, and allocate its memory arenas, and only then can the first inference run.
+We call the gap between this cold wake and the steady state the \emph{cold-start tax}.
+
+Cold starts are studied intensively in one adjacent setting---serverless / Function-as-a-Service
+platforms, where container and language-runtime initialization dominate invocation
+latency~\cite{wang2018peeking,shahrad2020serverless,fuerst2021faascache}. That literature lives
+in the data center, measures container and interpreter startup rather than model weight movement,
+and optimizes a keep-alive policy against cloud billing. To our knowledge the cold-start
+transient of \emph{on-device} DNN inference on a resource-constrained edge SBC---its magnitude,
+its physical decomposition, its energy in Joules, and its interaction with a small page
+cache---has not been characterized. This paper does so, and turns the characterization into an
+actionable residency policy.
+
+\noindent\textbf{Contributions.}
+\begin{enumerate}
+\item \textbf{A measurement of the tax (\S\ref{sec:decomp}).} Across twelve models on a
+Raspberry~Pi~5 we find a cold-start tax of 5--23$\times$ the steady-state latency, and decompose
+it into weight loading, graph build/optimize, arena allocation, and cold compute. The tax is
+dominated by weight loading from flash (55--81\% of the wake); the first inference runs at
+steady-state speed, so---contrary to the intuition behind ``warm-up loops''---there is almost no
+compute transient to amortize (\S\ref{sec:warmup}).
+\item \textbf{The eviction cliff (\S\ref{sec:cliff}).} On a 2\,GB device the tax is not paid
+once but \emph{re-paid} whenever idle-interval memory pressure evicts the model's pages from the
+page cache. We map next-wake latency against page-cache pressure and expose a sharp cliff that
+governs how often a duty-cycled device actually pays full price.
+\item \textbf{The energy of a wake (\S\ref{sec:energy}).} Using the Pi~5's PMIC power telemetry
+we show a single cold wake costs the energy of 4--19 steady-state inferences, that
+the wake is I/O-bound so the on-demand DVFS governor's ramp adds only a small tax
+(\S\ref{sec:dvfs}), and that static INT8 quantization shrinks the absolute tax but leaves its
+ratio essentially unchanged.
+\item \textbf{A tax-aware residency policy (\S\ref{sec:policy}).} We cast multi-model edge
+serving under a RAM budget as a cost-aware caching problem and propose \gdtax{}, a Greedy-Dual
+policy keyed on each model's measured cold-wake energy penalty. On measured constants over
+realistic traces it never underperforms LRU/LFU and cuts energy per request by up to 15\% at
+tight RAM budgets, matching an offline Belady reference.
+\end{enumerate}
+All measurements are taken on commodity hardware with an open, scripted artifact.
+
+\section{Related Work}\label{sec:related}
+\textbf{Edge DNN benchmarking.} Systematic characterizations of DNN inference on mobile and edge
+hardware~\cite{bianco2018benchmark,lane2016deepx,xu2019firstlook} and standard suites such as
+MLPerf~\cite{reddi2020mlperf} report steady-state latency, throughput, and (increasingly) energy.
+They deliberately exclude load and warm-up to isolate the compute kernel. Our companion work on
+the same platform characterizes the steady-state \emph{memory wall}~\cite{jacob2026memwall} and
+the steady-state \emph{energy}/DVFS trade-off~\cite{jacob2026energy}. The present paper is
+orthogonal: it measures precisely the transient those studies exclude, which is the part that
+dominates a duty-cycled deployment.
+
+\textbf{Serverless cold starts.} FaaS platforms suffer cold starts dominated by sandbox and
+runtime initialization; measurement studies~\cite{wang2018peeking,shahrad2020serverless} and
+keep-alive policies such as FaasCache's greedy-dual eviction~\cite{fuerst2021faascache} address
+them in the data center. We borrow the greedy-dual framing~\cite{cao1997greedydual} but target a
+fundamentally different regime: on-device inference on a single memory-constrained SBC, where the
+dominant cost is DNN weight movement from flash into a small page cache, the currency is measured
+Joules rather than cloud billing, and the resource under contention is 2\,GB of physical RAM.
+
+\textbf{Inference serving and predictability.} Systems such as Clockwork~\cite{gujarati2020clockwork}
+and INFaaS~\cite{romero2021infaas} manage model loading and placement for predictable serving on
+servers and GPUs. Their mechanisms (proactive loading, model-less selection) assume abundant
+memory and target multi-tenant clusters; we study the single-device edge limit and the physical
+eviction behavior of the OS page cache that those systems abstract away.
+
+\textbf{Model compression and quantization.} Pruning and
+quantization~\cite{han2016deepcompression,jacob2018quantization} reduce model size and
+steady-state cost. We show quantization's effect on the \emph{cold-start} tax is more subtle: a
+smaller INT8 file reduces the absolute load time but, because steady-state latency falls in
+step, the tax \emph{ratio} is preserved.
+
+\section{Experimental Setup}\label{sec:setup}
+\textbf{Platform.} All experiments run on a Raspberry~Pi~5 (Broadcom BCM2712, quad-core ARM
+Cortex-A76 up to 2.4\,GHz, 2\,GB LPDDR4X, 32\,GB class-10 microSD, Debian 12, Linux
+6.12, 64-bit). We use ONNX Runtime~\cite{onnxruntime} 1.24 with the CPU execution provider and,
+unless stated otherwise, four intra-op threads and its default (all) graph-optimization level.
+
+\textbf{Models.} We use twelve pre-trained ImageNet models spanning the design space: compact
+CNNs (SqueezeNet~1.1~\cite{iandola2016squeezenet}, ShuffleNet~V2~\cite{ma2018shufflenetv2},
+MobileNetV2~\cite{sandler2018mobilenetv2}), dense CNNs (ResNet-18/50~\cite{he2016resnet},
+GoogLeNet~\cite{szegedy2015googlenet}, DenseNet~\cite{huang2017densenet},
+EfficientNet-Lite4~\cite{tan2019efficientnet}), three statically-quantized INT8 CNNs, and a
+vision transformer (ViT-Base~\cite{dosovitskiy2021vit}). Model files range from
+1.3\,MB to 347\,MB.
+
+\textbf{Cold-start control.} A wake is made fully cold by flushing the kernel page cache
+(\texttt{sync; echo 3 > /proc/sys/vm/drop\_caches}) immediately before session creation, forcing
+the model file to be re-read from flash. To isolate the disk-read component we compare against a
+``warm-file'' condition in which the model file is first read into the page cache, so
+session creation performs no disk I/O. The graph-optimization component is isolated by comparing
+the default optimization level against a disabled-optimization build. Page faults are accounted
+via \texttt{getrusage} (major faults = disk-backed).
+
+\textbf{Timing, energy, and clock control.} Latencies use \texttt{perf\_counter}; each data
+point is the median of 5--7 cold trials with the interquartile range reported. Energy is
+integrated from the Pi~5's on-board PMIC (\texttt{vcgencmd pmic\_read\_adc}, per-rail
+$V\!\times\!I$ at ${\sim}\SI{50}{Hz}$), isolating the VDD\_CORE (CPU) and DDR rails as in our
+energy study~\cite{jacob2026energy}. Except in the DVFS experiment (\S\ref{sec:dvfs}), the CPU
+clock is pinned to 2.4\,GHz via the \texttt{userspace} governor so that the cold-start
+measurement is not confounded by governor ramp-up.
+
+% ===== results sections inserted below =====
+\input{results_body}
+
+\section{Conclusion}\label{sec:conclusion}
+Duty-cycled edge inference pays a cold-start tax that steady-state benchmarks make invisible.
+On a Raspberry~Pi~5 the tax is 5--23$\times$ the steady-state latency, is dominated by loading
+weights from flash rather than by any compute warm-up, costs the energy of 4--19 steady-state
+inferences per wake, and re-triggers whenever a small page cache is pressured during idle. These
+facts change what an edge deployment should optimize: not the hot-loop kernel, but the wake.
+Our \gdtax{} residency policy is one consequence---keeping warm the sessions whose eviction would
+cost the most energy---but the broader message is methodological. We recommend that edge-inference
+studies report a cold-wake latency and energy alongside steady-state numbers, and that duty-cycle
+period and memory budget be treated as first-class evaluation axes.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+\end{document}

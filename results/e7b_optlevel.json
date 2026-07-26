@@ -1,0 +1,110 @@
+{
+  "mobilenetv2": {
+    "file_mb": 13.964571,
+    "levels": {
+      "none": {
+        "cold_wake_ms": 197.86182199993618,
+        "steady_ms": 20.540565999908722
+      },
+      "basic": {
+        "cold_wake_ms": 201.5790369999877,
+        "steady_ms": 20.579864000069392
+      },
+      "all": {
+        "cold_wake_ms": 199.07591000003322,
+        "steady_ms": 16.700190999927145
+      }
+    },
+    "Bstar_all_vs_none": 0.3161378771872173
+  },
+  "resnet18": {
+    "file_mb": 46.820737,
+    "levels": {
+      "none": {
+        "cold_wake_ms": 582.2986100000662,
+        "steady_ms": 51.41517399999884
+      },
+      "basic": {
+        "cold_wake_ms": 647.8191190000189,
+        "steady_ms": 50.357380000036756
+      },
+      "all": {
+        "cold_wake_ms": 644.9484850000999,
+        "steady_ms": 47.98034500004178
+      }
+    },
+    "Bstar_all_vs_none": 18.239590675639715
+  },
+  "resnet50": {
+    "file_mb": 102.58334,
+    "levels": {
+      "none": {
+        "cold_wake_ms": 1281.1314989999119,
+        "steady_ms": 128.55052500003694
+      },
+      "basic": {
+        "cold_wake_ms": 1399.6929349999618,
+        "steady_ms": 128.9162260000012
+      },
+      "all": {
+        "cold_wake_ms": 1374.3245020000359,
+        "steady_ms": 108.30993499996566
+      }
+    },
+    "Bstar_all_vs_none": 4.604263166231608
+  },
+  "densenet": {
+    "file_mb": 32.726877,
+    "levels": {
+      "none": {
+        "cold_wake_ms": 580.2812090000771,
+        "steady_ms": 140.82839099989997
+      },
+      "basic": {
+        "cold_wake_ms": 626.8577600000071,
+        "steady_ms": 127.38802299998042
+      },
+      "all": {
+        "cold_wake_ms": 636.9191070000397,
+        "steady_ms": 124.93831799997679
+      }
+    },
+    "Bstar_all_vs_none": 3.5643573192040394
+  },
+  "efficientnet-lite4": {
+    "file_mb": 51.946641,
+    "levels": {
+      "none": {
+        "cold_wake_ms": 677.4095810000063,
+        "steady_ms": 71.85863999995945
+      },
+      "basic": {
+        "cold_wake_ms": 693.1344150000314,
+        "steady_ms": 70.95484500007387
+      },
+      "all": {
+        "cold_wake_ms": 679.1025940000281,
+        "steady_ms": 61.00659900005212
+      }
+    },
+    "Bstar_all_vs_none": 0.15600871762614513
+  },
+  "squeezenet1.1": {
+    "file_mb": 4.956208,
+    "levels": {
+      "none": {
+        "cold_wake_ms": 83.89563799994448,
+        "steady_ms": 14.193091999914031
+      },
+      "basic": {
+        "cold_wake_ms": 84.9876969999741,
+        "steady_ms": 14.289702999917608
+      },
+      "all": {
+        "cold_wake_ms": 84.62378900003387,
+        "steady_ms": 13.117497000052936
+      }
+    },
+    "Bstar_all_vs_none": 0.6769750697831598
+  }
+}

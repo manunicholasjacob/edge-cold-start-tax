@@ -1,0 +1,34 @@
+[E1] tax range: 4.8x (squeezenet1.1-int8) .. 22.5x (shufflenet-v2)
+[E1] disk-read fraction of wake: 48%..81% (mean 69%)
+[E1] cold-compute fraction: 0.9% max (mean 0.32%)
+[E1] effective flash read BW (resnet50): 94 MB/s
+[E1] mobilenetv2: tax 12.2x wake 204ms | mobilenetv2-int8: tax 13.2x wake 97ms
+[E1] resnet50: tax 13.2x wake 1411ms | resnet50-int8: tax 13.2x wake 433ms
+[E1] squeezenet1.1: tax 6.5x wake 84ms | squeezenet1.1-int8: tax 4.8x wake 59ms
+[E2] first/steady ratio: 0.92..1.10 (mean 1.02) -> no compute warm-up
+[E2] N_conv (inferences to steady): median 0, max 1
+[E4] cold wake = 4..19 steady inferences of energy
+[E4] P_idle=2.08W
+     squeezenet1.1: E_cold=0.34J E_warm=0.11193953850670402J E_inf=91.20079684433082mJ P_cold=3.9052204961770087W
+     shufflenet-v2: E_cold=0.85J E_warm=0.2514190828465298J E_inf=44.08697963091432mJ P_cold=5.57119350611247W
+     mobilenetv2: E_cold=1.21J E_warm=0.3337169775136719J E_inf=111.4157452995376mJ P_cold=6.030097590549303W
+     resnet18: E_cold=4.01J E_warm=1.012957738536314J E_inf=342.21915003455496mJ P_cold=6.204967403497844W
+     googlenet: E_cold=2.39J E_warm=0.5021128431560691J E_inf=352.90952611554724mJ P_cold=6.065962063778119W
+     densenet: E_cold=3.82J E_warm=1.6895684454169853J E_inf=791.9088561954748mJ P_cold=6.019061536215016W
+     efficientnet-lite4: E_cold=3.95J E_warm=0.8021458670626306J E_inf=403.99400871309587mJ P_cold=5.797541467811383W
+     resnet50: E_cold=8.80J E_warm=2.1732480182289535J E_inf=758.5552445439658mJ P_cold=6.343597188070024W
+     vit-base: E_cold=35.24J E_warm=7.673107425328874J E_inf=3010.708597334786mJ P_cold=7.663448669863879W
+     squeezenet1.1-int8: E_cold=0.31J E_warm=0.15836052829848463J E_inf=73.51832959311487mJ P_cold=5.096156555214421W
+     mobilenetv2-int8: E_cold=0.47J E_warm=0.2569143370672139J E_inf=43.995086951267794mJ P_cold=4.887878104811076W
+     resnet50-int8: E_cold=2.98J E_warm=1.0027384622708995J E_inf=226.60279171743394mJ P_cold=6.709143385776874W
+[E3b] mobilenetv2 (14MB): warm=48ms peak=23704ms cliff@S=1650MB
+[E3b] resnet18 (47MB): warm=175ms peak=31479ms cliff@S=1450MB
+[E3b] resnet50 (103MB): warm=344ms peak=31827ms cliff@S=1450MB
+[E3-stream] mobilenetv2: wake 48..49ms across 0..2048MB streamed (flat=scan-resistant)
+[E3-stream] resnet18: wake 154..166ms across 0..2048MB streamed (flat=scan-resistant)
+[E3-stream] resnet50: wake 322..338ms across 0..2048MB streamed (flat=scan-resistant)
+[E3-stream] densenet: wake 282..285ms across 0..2048MB streamed (flat=scan-resistant)
+[E3-stream] efficientnet-lite4: wake 130..133ms across 0..2048MB streamed (flat=scan-resistant)
+[E6] DVFS ramp tax: -0.0%..4.0% (mean 2.5%) -> wake is I/O-bound
+[E5/zipf] @25% budget: reload=2.81 lru=1.43 gd_tax=1.35 belady=1.38 J/req | gd vs lru 5% save, p99 gd=1411ms lru=1411ms reload=1411ms
+[E5/surveillance] @25% budget: reload=1.23 lru=0.80 gd_tax=0.77 belady=0.76 J/req | gd vs lru 4% save, p99 gd=1411ms lru=1411ms reload=1411ms

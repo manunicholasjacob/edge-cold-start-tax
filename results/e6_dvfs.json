@@ -1,0 +1,95 @@
+{
+  "mobilenetv2": {
+    "schedutil": {
+      "wake_ms": 217.06973000254948,
+      "wake_E_J": 0.7435042303377823
+    },
+    "pinned_min": {
+      "wake_ms": 219.5180605049245,
+      "wake_E_J": null
+    },
+    "pinned_max": {
+      "wake_ms": 208.7902915009181,
+      "wake_E_J": null
+    },
+    "ramp_tax_ms": 8.279438501631375,
+    "ramp_tax_pct": 3.965432703845317
+  },
+  "resnet18": {
+    "schedutil": {
+      "wake_ms": 672.5115759982145,
+      "wake_E_J": null
+    },
+    "pinned_min": {
+      "wake_ms": 673.165099498874,
+      "wake_E_J": null
+    },
+    "pinned_max": {
+      "wake_ms": 647.0568999939132,
+      "wake_E_J": 0.4703007553256207
+    },
+    "ramp_tax_ms": 25.45467600430129,
+    "ramp_tax_pct": 3.933916167888904
+  },
+  "resnet50": {
+    "schedutil": {
+      "wake_ms": 1413.4766275019501,
+      "wake_E_J": 1.2304190618239994
+    },
+    "pinned_min": {
+      "wake_ms": 1463.90008549497,
+      "wake_E_J": 1.1638796928293373
+    },
+    "pinned_max": {
+      "wake_ms": 1414.0854645011132,
+      "wake_E_J": 1.4796404986891112
+    },
+    "ramp_tax_ms": -0.6088369991630316,
+    "ramp_tax_pct": -0.04305517696399123
+  },
+  "densenet": {
+    "schedutil": {
+      "wake_ms": 666.3207355013583,
+      "wake_E_J": 0.7943991097317378
+    },
+    "pinned_min": {
+      "wake_ms": 732.5125959978322,
+      "wake_E_J": 0.6091272275375945
+    },
+    "pinned_max": {
+      "wake_ms": 644.6122714987723,
+      "wake_E_J": 1.213059498830099
+    },
+    "ramp_tax_ms": 21.70846400258597,
+    "ramp_tax_pct": 3.367677744035519
+  },
+  "efficientnet-lite4": {
+    "schedutil": {
+      "wake_ms": 719.0561474999413,
+      "wake_E_J": 0.5245536399526802
+    },
+    "pinned_min": {
+      "wake_ms": 726.6400029984652,
+      "wake_E_J": 0.35578718262480186
+    },
+    "pinned_max": {
+      "wake_ms": 699.136642004305,
+      "wake_E_J": null
+    },
+    "ramp_tax_ms": 19.91950549563626,
+    "ramp_tax_pct": 2.8491577037831184
+  },
+  "vit-base": {
+    "schedutil": {
+      "wake_ms": 4586.827032000002
+    },
+    "pinned_min": {
+      "wake_ms": 4844.301844000029
+    },
+    "pinned_max": {
+      "wake_ms": 4556.853595500002
+    },
+    "ramp_tax_ms": 29.97343650000039,
+    "ramp_tax_pct": 0.6577660631800822
+  }
+}
