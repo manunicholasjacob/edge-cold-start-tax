@@ -28,6 +28,12 @@ pinned to 2.4 GHz (userspace governor) except in the DVFS experiment. Energy via
   tmpfs up to 4× faster → predicts NVMe/eMMC shrinks the tax.
 - **E7b — graph-optimization crossover.** cold-wake and steady at opt {none,basic,all}; crossover
   B* below which disabling optimization wins. B*<5 for most; ≈18 for ResNet-18.
+- **E8 — on-device GD-Tax (hardware validation).** The residency server implemented and run on
+  the Pi 5 itself: real sessions held to a RAM budget, PMIC energy measured over a request trace,
+  eviction releases session + file-cache (posix_fadvise DONTNEED). Reload baseline measured
+  2.82 J/req vs 2.81 J predicted (<1%). GD-Tax beats LRU in 3/4 configs (up to 14.4% energy, also
+  lower latency/misses); trails LRU by 4.2% in the tightest surveillance case (within run-to-run
+  variance). Memory-safe (no hog); resident set always < budget < RAM.
 - **Analysis models.** Predictive size-only model (flash BW 96 MB/s, R²=1.00; wake MAPE 12%) and
   duty-cycle amortization (need 38–119 inferences/wake for <10% overhead).
 

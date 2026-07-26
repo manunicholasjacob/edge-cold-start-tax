@@ -52,10 +52,12 @@ directly. Because the wake is I/O-bound, the on-demand DVFS governor's clock ram
 small tax, and static INT8 shrinks the absolute tax but not its ratio. We turn these
 measurements into a method: \gdtax{}, a tax-aware model-residency cache for multi-model edge
 deployments that keeps warm the sessions whose eviction would cost the most energy. Evaluated on
-measured constants over realistic request traces, \gdtax{} never underperforms LRU or LFU and
+measured constants over realistic request traces, \gdtax{} matches or beats LRU and LFU and
 cuts energy per request by up to \ABSPOLICYSAVE{} at a tight RAM budget, matching an offline
-Belady reference. We argue that duty-cycled edge inference should be reported and optimized in
-terms of the cold wake, not the steady state.
+Belady reference; we further implement and measure it on the device itself (up to \SI{14}{\percent}
+measured). We argue that
+duty-cycled edge inference should be reported and optimized in terms of the cold wake, not the
+steady state.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -112,8 +114,9 @@ ratio essentially unchanged.
 \item \textbf{A tax-aware residency policy (\S\ref{sec:policy}).} We cast multi-model edge
 serving under a RAM budget as a cost-aware caching problem and propose \gdtax{}, a Greedy-Dual
 policy keyed on each model's measured cold-wake energy penalty. On measured constants over
-realistic traces it never underperforms LRU/LFU and cuts energy per request by up to 15\% at
-tight RAM budgets, matching an offline Belady reference.
+realistic traces it matches or beats LRU/LFU and cuts energy per request by up to 15\% at
+tight RAM budgets, matching an offline Belady reference---and we validate it running on the
+Pi~5 itself (up to 14\% measured), not only in simulation.
 \end{enumerate}
 All measurements are taken on commodity hardware with an open, scripted artifact.
 

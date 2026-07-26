@@ -23,8 +23,8 @@ tax*) on an edge SBC, and turns it into deployable methods.
   resistance).
 - **DVFS** ramp adds only ~0–4% (I/O-bound wake). **INT8** shrinks the absolute tax but not its ratio.
 - **Methods:** disable graph optimization for short wakes (crossover B*); and **GD-Tax**, a
-  tax-aware residency cache that consistently beats LRU/LFU (up to 15% energy) and matches a
-  Belady reference.
+  tax-aware residency cache that matches/beats LRU/LFU (up to 15% energy) and matches a Belady
+  reference — **validated on the Pi itself** (up to 14% measured energy reduction, 3 of 4 configs).
 
 ## Contents
 - `paper/` — LaTeX (IEEEtran), refs.bib, compiled `main.pdf`, cover letter

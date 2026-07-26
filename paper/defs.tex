@@ -42,12 +42,20 @@ explodes to over \SI{30}{s}---a ${>}80\times$ jump. Every model tested shows the
 \SI{2.1}{W}. Because loading is I/O-bound the wake draws less instantaneous power than sustained
 compute, but its duration makes it costly: for a device that wakes to run a single inference,
 \OVERHEADBONEE\ of the energy spent is cold-start overhead rather than useful work.}
-\newcommand{\POLICYPARA}{Across both workloads and all budgets, \gdtax{} never underperforms LRU
-or LFU, and it reduces energy per request by up to \SI{15}{\percent} (Zipf) and
+\newcommand{\POLICYPARA}{In the seed-averaged simulation, across both workloads and all budgets,
+\gdtax{} never underperforms LRU or LFU, and it reduces energy per request by up to
+\SI{15}{\percent} (Zipf) and
 \SI{11}{\percent} (surveillance) at tight budgets, tracking---and at low-to-mid budgets matching
 or beating---an offline Belady hit-rate reference. The gain is largest where cost and popularity
 are misaligned (an infrequent but expensive-to-reload detector), exactly the case LRU and LFU
 mishandle by evicting the costly model between its accesses.}
+\newcommand{\ONDEVICEPARA}{\gdtax{} reduces measured energy per request in three of the four
+tested configurations---by up to \SI{14}{\percent} versus LRU (Zipf, \SI{200}{MB} budget) and
+\SI{9}{\percent} (surveillance, \SI{320}{MB})---while also lowering mean latency and miss count;
+in the tightest surveillance case it trails LRU by \SI{4}{\percent}, within run-to-run variation.
+The measured ranking (reload $\gg$ LRU\,$\approx$\,LFU\,$\gtrsim$\,\gdtax{}) matches the
+seed-averaged simulation, and the absolute reduction from caching is large: always-reload spends
+\SIrange{2.8}{1.4}{J} per request, which residency cuts to as little as \SI{0.61}{J}.}
 \newcommand{\OPTPARA}{The crossover is model-dependent: for most models optimization pays for
 itself after only a few inferences ($B^{*}<5$), but for graphs whose optimization is expensive it
 is substantial---$B^{*}\approx18$ for ResNet-18---so a doorbell-style deployment that runs a

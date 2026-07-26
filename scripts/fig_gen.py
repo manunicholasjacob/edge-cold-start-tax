@@ -173,6 +173,23 @@ def fig7_policy(e5):
     axs[0].legend(frameon=False, fontsize=7.5)
     fig.savefig(os.path.join(FIG,"fig7_policy.png")); plt.close(fig)
 
+def fig10_ondevice(e8):
+    wls=list(e8["runs"].keys())
+    budgets=list(next(iter(e8["runs"].values())).keys())
+    pol_lab={"reload":("Always-reload","#999999"),"lru":("LRU","#4393c3"),
+             "lfu":("LFU","#92c5de"),"gd_tax":("GD-Tax (ours)","#c51b7d")}
+    fig,axs=plt.subplots(1,len(wls),figsize=(8.6,3.4),squeeze=False)
+    for j,wl in enumerate(wls):
+        ax=axs[0][j]; x=np.arange(len(budgets)); w=0.2
+        for i,(pol,(lab,col)) in enumerate(pol_lab.items()):
+            ys=[e8["runs"][wl][b][pol]["E_per_req_J"] for b in budgets]
+            ax.bar(x+(i-1.5)*w, ys, w, color=col, label=lab)
+        ax.set_xticks(x); ax.set_xticklabels([f"{b} MB" for b in budgets])
+        ax.set_xlabel("RAM budget"); ax.set_ylabel("Energy per request (J), measured")
+        ax.set_title(f"({chr(97+j)}) {wl} workload (on-device)")
+    axs[0][0].legend(frameon=False,fontsize=7.5)
+    fig.savefig(os.path.join(FIG,"fig10_ondevice.png")); plt.close(fig)
+
 def main():
     e1=load("e1_decomposition.json"); e2=load("e2_warmup.json")
     e3b=load("e3b_cliff.json"); e3s=load("e3_streaming.json")
@@ -185,6 +202,8 @@ def main():
     if e4: fig5_energy({k:v for k,v in e4.items() if not k.startswith("_")}); print("fig5 ok")
     if e6: fig6_dvfs(e6); print("fig6 ok")
     if e5: fig7_policy(e5); print("fig7 ok")
+    e8=load("e8_ondevice.json")
+    if e8: fig10_ondevice(e8); print("fig10 ok")
     print("FIGS DONE")
 
 if __name__ == "__main__":

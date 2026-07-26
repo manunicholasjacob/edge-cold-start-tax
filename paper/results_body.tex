@@ -294,3 +294,23 @@ highest-energy-penalty models, \gdtax{} cuts energy per request and tail latency
 budgets, approaching the Belady oracle and far below LRU/LFU and always-reload.}
 \label{fig:policy}
 \end{figure}
+
+\subsection{Validated on Hardware}\label{sec:ondevice}
+To confirm the policy is not an artifact of the simulation, we implemented the full residency
+server on the Pi~5 itself: a six-model deployment serves a request trace while holding ONNX
+Runtime sessions resident up to a RAM budget, building a session on a miss (real disk read, graph
+build, and first inference) and, on eviction, releasing both the session and the model file's
+page-cache residency (\texttt{posix\_fadvise(DONTNEED)}) as a memory-pressured device would. We
+measure real per-request energy from the PMIC under each policy (Fig.~\ref{fig:ondevice}). The
+on-device numbers corroborate the simulation: the always-reload baseline measures
+\SI{2.82}{J} per request against a predicted \SI{2.81}{J} (within \SI{1}{\percent}), and
+\ONDEVICEPARA{} No memory hog is used and the resident set never exceeds the budget, so unlike the
+eviction-cliff sweep this run stays well clear of thrashing.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig10_ondevice.png}
+\caption{\gdtax{} implemented and measured on the Raspberry~Pi~5 (not simulated): real
+per-request energy under each policy for two RAM budgets. The on-device ranking matches the
+simulation, confirming the method on hardware.}
+\label{fig:ondevice}
+\end{figure}
