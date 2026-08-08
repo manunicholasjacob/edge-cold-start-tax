@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite it as below."
+title: "The Cold-Start Tax: Warm-Up, Re-Warm, and Residency Policy for Duty-Cycled Edge DNN Inference"
+authors:
+  - family-names: "Jacob"
+    given-names: "Manu Nicholas"
+    orcid: "https://orcid.org/0009-0007-6589-6572"
+type: software
+repository-code: "https://github.com/manunicholasjacob/edge-cold-start-tax"
+url: "http://manunicholasjacob.com/"
+version: "1.0.1"
+date-released: "2026-08-07"
