@@ -1,5 +1,7 @@
 # The Cold-Start Tax — Duty-Cycled Edge DNN Inference on Raspberry Pi 5
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21844857.svg)](https://doi.org/10.5281/zenodo.21844857)
+
 Artifact for the paper **"The Cold-Start Tax: Warm-Up, Re-Warm, and Residency Policy for
 Duty-Cycled Edge DNN Inference"** (submitted to *IEEE Internet of Things Journal*).
 
@@ -61,3 +63,10 @@ Raspberry Pi 5 Model B (Broadcom BCM2712, quad-core Cortex-A76 @ up to 2.4 GHz, 
 
 Manu Nicholas Jacob. Part of an edge-AI measurement portfolio on the Pi 5; companion to
 *The Memory Wall Governs Edge DNN Inference* and *Latency-Optimal Is Not Energy-Optimal*.
+
+## Archived version
+
+This artifact is archived on Zenodo. The concept DOI
+[10.5281/zenodo.21844857](https://doi.org/10.5281/zenodo.21844857)
+always resolves to the latest release, and `CITATION.cff` carries the full metadata,
+which is what GitHub's "Cite this repository" button renders.

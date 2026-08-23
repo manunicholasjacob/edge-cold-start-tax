@@ -1,0 +1,29 @@
+{
+  "title": "The Cold-Start Tax: Warm-Up, Re-Warm, and Residency Policy for Duty-Cycled Edge DNN Inference",
+  "upload_type": "software",
+  "license": "mit",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Jacob, Manu Nicholas",
+      "orcid": "0009-0007-6589-6572"
+    }
+  ],
+  "keywords": [
+    "edge inference",
+    "cold start",
+    "duty cycling",
+    "page cache",
+    "energy measurement",
+    "Raspberry Pi 5",
+    "Arm Cortex-A76"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/manunicholasjacob/edge-cold-start-tax",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "scheme": "url"
+    }
+  ]
+}
