@@ -18,13 +18,13 @@ turns the measurements into a residency policy.
 | # | Finding |
 |---|---------|
 | 1 | The cold-start tax is **5 to 23× the steady-state latency** across 12 models (compact/dense/INT8 CNNs + a ViT). |
-| 2 | It is a **weight-loading cost**: flash read is **55 to 81%** of the cold wake (~94 MB/s microSD). |
+| 2 | It is a **weight-loading cost**: flash read is **55 to 81%** of the cold wake for the FP32 CNNs (~94 MB/s microSD). |
 | 3 | **There is no compute warm-up**: the first inference already runs at steady-state speed (warm-up loops amortize a cost that doesn't exist). |
 | 4 | A cold wake costs the energy of **4 to 19** steady-state inferences (PMIC-measured). |
 | 5 | **Use-once file I/O does *not* evict a recently-used model** (Linux active-list scan resistance), but a **co-tenant's anonymous working set does**: a sharp **eviction cliff** re-pays the full tax. |
 | 6 | Because the wake is I/O-bound, the **DVFS governor ramp adds only ~0 to 4%**, so max-clock through a wake is wasted energy. |
 | 7 | Static **INT8 shrinks the absolute tax but not its ratio** (steady falls in step). |
-| 8 | **GD-Tax**, a tax-aware residency cache keyed on measured cold-wake energy penalty, cuts energy/request and tail latency at tight RAM budgets vs LRU/LFU, approaching a Belady oracle. |
+| 8 | **GD-Tax**, a tax-aware residency cache keyed on measured cold-wake energy penalty, cuts energy per request at tight RAM budgets (15 to 55% of the all-resident footprint) vs LRU/LFU, in simulation on the measured constants. |
 
 ## Repository layout
 
@@ -52,6 +52,10 @@ On a Raspberry Pi 5 (Debian, ONNX Runtime ≥ 1.20, `perf`, `sudo` for `drop_cac
 models in `~/coldstart/models/` and run each `eN_*.py`; then pull `results/*.json` and run
 `fig_gen.py` and `compute_stats.py` locally. `perf_event_paranoid` should be `-1` and the CPU
 governor is controlled by the scripts.
+
+Without a Pi, `python scripts/compute_stats.py` regenerates `results/STATS.txt` from the JSONs, and
+`python scripts/check_headlines.py` recomputes the findings above and exits non-zero on drift. The
+`reproduce` workflow runs both on every push.
 
 ## Platform
 
