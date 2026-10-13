@@ -1,15 +1,15 @@
-# The Cold-Start Tax — Duty-Cycled Edge DNN Inference on Raspberry Pi 5
+# The Cold-Start Tax: Duty-Cycled Edge DNN Inference on Raspberry Pi 5
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21844857.svg)](https://doi.org/10.5281/zenodo.21844857)
 
 Artifact for the paper **"The Cold-Start Tax: Warm-Up, Re-Warm, and Residency Policy for
 Duty-Cycled Edge DNN Inference"** (submitted to *IEEE Internet of Things Journal*).
 
-Edge-inference benchmarks report **steady-state** latency and energy — the numbers a model
+Edge-inference benchmarks report **steady-state** latency and energy, the numbers a model
 reaches *after* it is loaded and warmed. But a huge class of IoT devices **duty-cycle**: they
 wake on an event, run a few inferences, and sleep. For them the **transient at every wake**, not
-the steady state, dominates latency and energy. This work measures that transient — the
-**cold-start tax** — on a Raspberry Pi 5 (ARM Cortex-A76), decomposes it, measures its energy
+the steady state, dominates latency and energy. This work measures that transient, the
+**cold-start tax**, on a Raspberry Pi 5 (ARM Cortex-A76), decomposes it, measures its energy
 with on-board PMIC telemetry, exposes the page-cache **eviction cliff** that re-triggers it, and
 turns the measurements into a residency policy.
 
@@ -17,12 +17,12 @@ turns the measurements into a residency policy.
 
 | # | Finding |
 |---|---------|
-| 1 | The cold-start tax is **5–23× the steady-state latency** across 12 models (compact/dense/INT8 CNNs + a ViT). |
-| 2 | It is a **weight-loading cost**: flash read is **55–81%** of the cold wake (~94 MB/s microSD). |
-| 3 | **There is no compute warm-up** — the first inference already runs at steady-state speed (warm-up loops amortize a cost that doesn't exist). |
-| 4 | A cold wake costs the **energy of tens–hundreds of steady-state inferences** (PMIC-measured). |
-| 5 | **Use-once file I/O does *not* evict a recently-used model** (Linux active-list scan resistance), but a **co-tenant's anonymous working set does** — a sharp **eviction cliff** re-pays the full tax. |
-| 6 | Because the wake is I/O-bound, the **DVFS governor ramp adds only ~0–4%** — max-clock through a wake is wasted energy. |
+| 1 | The cold-start tax is **5 to 23× the steady-state latency** across 12 models (compact/dense/INT8 CNNs + a ViT). |
+| 2 | It is a **weight-loading cost**: flash read is **55 to 81%** of the cold wake (~94 MB/s microSD). |
+| 3 | **There is no compute warm-up**: the first inference already runs at steady-state speed (warm-up loops amortize a cost that doesn't exist). |
+| 4 | A cold wake costs the energy of **4 to 19** steady-state inferences (PMIC-measured). |
+| 5 | **Use-once file I/O does *not* evict a recently-used model** (Linux active-list scan resistance), but a **co-tenant's anonymous working set does**: a sharp **eviction cliff** re-pays the full tax. |
+| 6 | Because the wake is I/O-bound, the **DVFS governor ramp adds only ~0 to 4%**, so max-clock through a wake is wasted energy. |
 | 7 | Static **INT8 shrinks the absolute tax but not its ratio** (steady falls in step). |
 | 8 | **GD-Tax**, a tax-aware residency cache keyed on measured cold-wake energy penalty, cuts energy/request and tail latency at tight RAM budgets vs LRU/LFU, approaching a Belady oracle. |
 

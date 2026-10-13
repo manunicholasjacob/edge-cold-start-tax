@@ -1,5 +1,6 @@
 {
   "title": "The Cold-Start Tax: Warm-Up, Re-Warm, and Residency Policy for Duty-Cycled Edge DNN Inference",
+  "description": "Artifact for The Cold-Start Tax: Warm-Up, Re-Warm, and Residency Policy for Duty-Cycled Edge DNN Inference (under review). Hardware measurements on a Raspberry Pi 5 (Arm Cortex-A76) of the latency and PMIC energy transient at every wake of a duty-cycled device, its decomposition, the page-cache eviction effect that re-triggers it, and a residency policy built from the measurements.",
   "upload_type": "software",
   "license": "mit",
   "access_right": "open",

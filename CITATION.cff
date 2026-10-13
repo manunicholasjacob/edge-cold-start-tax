@@ -18,8 +18,8 @@ identifiers:
     value: "10.5281/zenodo.21844879"
     description: "DOI for version v1.0.1"
 license: MIT
-version: "1.0.1"
-date-released: "2026-08-07"
+version: "1.0.2"
+date-released: "2026-10-12"
 keywords:
   - "edge inference"
   - "cold start"
