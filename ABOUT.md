@@ -14,7 +14,7 @@ tax*) on an edge SBC, and turns it into deployable methods.
 
 ## Headline results (all hardware-measured)
 - Cold-start tax **5–23×** steady-state latency across 12 models (compact/dense/INT8 CNNs + ViT).
-- The tax is **weight-loading bound**: flash read is 55–81% of the wake; effective microSD BW
+- The tax is **weight-loading bound**: flash read is 55 to 81% of the wake for the FP32 CNNs; effective microSD BW
   96 MB/s (R²=1.00). **No compute warm-up** — the first inference already runs at steady speed.
 - **Size-only predictor** of the cold wake: MAPE 12% (R²=0.998), needing only the model file size.
 - **Energy** (Pi 5 PMIC): a cold wake costs 4–19 steady-state inferences; up to 35 J for ViT-Base.
