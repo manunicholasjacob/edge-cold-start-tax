@@ -40,8 +40,12 @@ scripts/
   vit_supplement.py   ViT-Base runs merged into E1/E2/E6
   footprint.py        resident memory per model (+ input signatures)
   e5_residency.py     E5: GD-Tax residency policy simulation (uses measured constants)
+  e7_storage_opt.py   E7: storage sensitivity (tmpfs vs microSD) and graph-optimization level
+  e8_ondevice_residency.py  E8: GD-Tax residency measured on the device (PMIC), vs reload/LRU/LFU
   fig_gen.py          regenerates all paper figures
   compute_stats.py    prints every paper-cited number from the raw JSONs
+  analysis_models.py  cold-wake predictor from file size, and duty-cycle amortization
+  check_headlines.py  recomputes the findings above from results/ and fails on drift
 results/              raw measurement JSONs + STATS.txt
 paper/                LaTeX (IEEEtran), refs.bib, figures, compiled PDF
 ```
